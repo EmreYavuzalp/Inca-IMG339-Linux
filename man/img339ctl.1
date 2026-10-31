@@ -1,4 +1,4 @@
-.TH IMG339CTL 1 "October 2026" "img339ctl 0.1.7" "User Commands"
+.TH IMG339CTL 1 "October 2026" "img339ctl 0.1.8" "User Commands"
 .SH NAME
 img339ctl \- configure the Inca IMG\-339 gaming mouse
 .SH SYNOPSIS
@@ -233,9 +233,15 @@ udev rule giving the logged\-in user access to the mouse's hidraw node
 (shipped as
 .IR contrib/70\-img339\-mouse.rules ).
 .TP
-.I ~/.config/systemd/user/img339ctl.service
-Optional systemd user unit that runs the daemon (shipped as
-.IR contrib/img339ctl.service ).
+.I /usr/lib/systemd/user/img339ctl.service
+systemd user unit that runs the daemon, on by default with the Debian package:
+it writes the saved profile at login and when the mouse is plugged in, if there is
+one. Turn it off with
+.BR "systemctl \-\-user mask \-\-now img339ctl.service" .
+Other installs can copy
+.I contrib/img339ctl.service
+to
+.IR ~/.config/systemd/user/ .
 .SH EXIT STATUS
 0 on success, 1 on error (for example the mouse is missing, a value is out of
 range or the profile is invalid), 2 on invalid command line usage.

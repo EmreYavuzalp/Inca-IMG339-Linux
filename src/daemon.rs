@@ -204,13 +204,19 @@ pub fn run(device_path: Option<&Path>, profile_path: &Path) -> Result<()> {
             }
         };
         watched.refresh();
-        if let Err(e) = mouse.send_all(&watched.profile.reports()?) {
-            eprintln!("{e:#}");
-            thread::sleep(Duration::from_secs(1));
-            continue;
+        // Without a saved profile the mouse keeps what it has: writing the defaults here would
+        // overwrite settings made elsewhere, just because the service started.
+        if watched.path.exists() {
+            if let Err(e) = mouse.send_all(&watched.profile.reports()?) {
+                eprintln!("{e:#}");
+                thread::sleep(Duration::from_secs(1));
+                continue;
+            }
+            device::store_level(watched.profile.active);
+            eprintln!("img339ctl daemon: profile applied, listening for button events");
+        } else {
+            eprintln!("img339ctl daemon: no saved profile, leaving the mouse as it is; listening for button events");
         }
-        device::store_level(watched.profile.active);
-        eprintln!("img339ctl daemon: profile applied, listening for button events");
         let runner = Arc::new(Runner { mouse: Mutex::new(mouse), held: Default::default() });
         if let Err(e) = listen(events, &runner, &mut watched) {
             eprintln!("{e}");

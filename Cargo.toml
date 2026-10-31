@@ -1,6 +1,6 @@
 [package]
 name = "img339ctl"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 rust-version = "1.81"
 description = "Linux configuration tool for the Inca IMG-339 gaming mouse"

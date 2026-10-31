@@ -202,6 +202,25 @@ img339ctl reset             # fabrika ayarlarına dön
 Tuşlar üreticinin programındaki gibi numaralanır. Varsayılan olarak 1 sol,
 2 orta, 3 sağ, 4 ileri, 5 geri, 6 DPI+, 7 DPI-.
 
+### Açılışta otomatik çalışma
+
+`.deb` paketiyle arka plan servisi kendiliğinden açılır. Oturum açılınca ve fare her
+takıldığında kayıtlı ayarları fareye yazar, medya tuşları ve makrolar da hazır olur.
+Henüz kayıtlı ayar yoksa farenin mevcut ayarlarına dokunmaz. Kapatmak ve geri açmak için:
+
+```sh
+systemctl --user mask --now img339ctl.service
+systemctl --user unmask img339ctl.service && systemctl --user start img339ctl.service
+```
+
+Diğer kurulumlarda servisi kendiniz açın:
+
+```sh
+mkdir -p ~/.config/systemd/user
+cp contrib/img339ctl.service ~/.config/systemd/user/
+systemctl --user enable --now img339ctl.service
+```
+
 ### Medya tuşları, kısayollar ve makrolar
 
 `volume-up`, `copy`, `keys:ctrl+shift+t`, `macro:AD` ya da `run:KOMUT` gibi
@@ -213,19 +232,11 @@ vuruşları fareden geldiği için her yerde çalışır: X11, Wayland, hatta ko
 img339ctl macro selam text:merhaba enter
 img339ctl button 5 macro:selam          # bir kez; macro:selam:3 ya da macro:selam:hold da olur
 img339ctl button 4 volume-up
-img339ctl daemon                         # açık kalsın
+img339ctl daemon                         # .deb ile servis zaten çalışır
 ```
 
 `text:` adımı harfleri İngilizce Q klavye düzenine göre gönderir. Türkçe
 klavye düzeninde ğ, ü, ş, ı, ö, ç gibi harfler farklı çıkabilir.
-
-Servisin oturum açılınca kendiliğinden başlaması için:
-
-```sh
-mkdir -p ~/.config/systemd/user
-cp contrib/img339ctl.service ~/.config/systemd/user/
-systemctl --user enable --now img339ctl.service
-```
 
 Tüm işlevlerin listesi ve makro yazımı için `img339ctl actions` ya da
 `man img339ctl`.

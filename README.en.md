@@ -194,6 +194,26 @@ profile file is the reference; `img339ctl apply` sends it again.
 Buttons are numbered as in the vendor software: 1 left, 2 middle, 3 right,
 4 forward, 5 back, 6 DPI+, 7 DPI- by default.
 
+### Starting automatically
+
+With the `.deb` package the background service starts by itself. At login and each time
+the mouse is plugged in it writes the saved settings to the mouse, and media keys and
+macros are ready to use. If nothing has been saved yet, it leaves the mouse's settings
+alone. To turn it off and back on:
+
+```sh
+systemctl --user mask --now img339ctl.service
+systemctl --user unmask img339ctl.service && systemctl --user start img339ctl.service
+```
+
+With other installs, enable the service yourself:
+
+```sh
+mkdir -p ~/.config/systemd/user
+cp contrib/img339ctl.service ~/.config/systemd/user/
+systemctl --user enable --now img339ctl.service
+```
+
 ### Media keys, shortcuts and macros
 
 Functions such as `volume-up`, `copy`, `keys:ctrl+shift+t`, `macro:NAME` or
@@ -206,15 +226,7 @@ console.
 img339ctl macro hello text:hello space text:world enter
 img339ctl button 5 macro:hello          # once; macro:hello:3 or macro:hello:hold also work
 img339ctl button 4 volume-up
-img339ctl daemon                         # keep it running
-```
-
-To start the daemon with your session:
-
-```sh
-mkdir -p ~/.config/systemd/user
-cp contrib/img339ctl.service ~/.config/systemd/user/
-systemctl --user enable --now img339ctl.service
+img339ctl daemon                         # the .deb's service already runs it
 ```
 
 Run `img339ctl actions` for the full list and the macro syntax, or see

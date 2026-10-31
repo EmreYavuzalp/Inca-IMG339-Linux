@@ -57,6 +57,24 @@ if [ "$1" = configure ] && command -v udevadm >/dev/null 2>&1; then
     udevadm control --reload-rules || true
     udevadm trigger --subsystem-match=hidraw --action=add || true
 fi
+if [ "$1" = configure ] && command -v systemctl >/dev/null 2>&1; then
+    # On for every user from their next login, and right away for those logged in now.
+    systemctl --global enable img339ctl.service >/dev/null 2>&1 || true
+    for user in $(loginctl list-users --no-legend 2>/dev/null | awk '{print $2}'); do
+        systemctl --user -M "$user@" daemon-reload >/dev/null 2>&1 || true
+        systemctl --user -M "$user@" restart img339ctl.service >/dev/null 2>&1 || true
+    done
+fi
+EOF
+cat > "$PKG/DEBIAN/prerm" <<'EOF'
+#!/bin/sh
+set -e
+if [ "$1" = remove ] && command -v systemctl >/dev/null 2>&1; then
+    for user in $(loginctl list-users --no-legend 2>/dev/null | awk '{print $2}'); do
+        systemctl --user -M "$user@" stop img339ctl.service >/dev/null 2>&1 || true
+    done
+    systemctl --global disable img339ctl.service >/dev/null 2>&1 || true
+fi
 EOF
 cat > "$PKG/DEBIAN/postrm" <<'EOF'
 #!/bin/sh
@@ -65,7 +83,7 @@ if [ "$1" = remove ] && command -v udevadm >/dev/null 2>&1; then
     udevadm control --reload-rules || true
 fi
 EOF
-chmod 755 "$PKG/DEBIAN/postinst" "$PKG/DEBIAN/postrm"
+chmod 755 "$PKG/DEBIAN/postinst" "$PKG/DEBIAN/prerm" "$PKG/DEBIAN/postrm"
 
 mkdir -p "$OUT"
 dpkg-deb --root-owner-group -Zxz --build "$PKG" "$OUT/img339ctl_${VERSION}_amd64.deb"
