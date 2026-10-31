@@ -1,0 +1,46 @@
+[package]
+name = "img339ctl"
+version = "0.1.7"
+edition = "2021"
+rust-version = "1.81"
+description = "Linux configuration tool for the Inca IMG-339 gaming mouse"
+license = "BSD-3-Clause"
+readme = "README.md"
+repository = "https://github.com/EmreYavuzalp/Inca-IMG339-Linux"
+categories = ["command-line-utilities", "hardware-support"]
+
+[features]
+# Graphical app (img339ctl-gui). Off by default so the CLI builds without egui.
+gui = ["dep:eframe", "dep:winit", "dep:log"]
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+libc = "0.2"
+eframe = { version = "0.31", optional = true, default-features = false, features = [
+    "default_fonts",
+    "glow",
+] }
+log = { version = "0.4", optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+eframe = { version = "0.31", optional = true, default-features = false, features = ["wayland", "x11"] }
+# GNOME-style title bar on Wayland, where the app has to draw its own.
+winit = { version = "0.30", optional = true, default-features = false, features = ["wayland-csd-adwaita"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# Shared access: otherwise opening the mouse would take it away from the system.
+hidapi = { version = "2.6", default-features = false, features = ["macos-shared-device"] }
+
+[[bin]]
+name = "img339ctl"
+path = "src/main.rs"
+
+[[bin]]
+name = "img339ctl-gui"
+path = "src/gui/main.rs"
+required-features = ["gui"]
+
+[profile.release]
+strip = true
+lto = true

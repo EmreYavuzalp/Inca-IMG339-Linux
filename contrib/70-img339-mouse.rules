@@ -1,0 +1,4 @@
+# Inca IMG-339 gaming mouse: give the logged-in user access to its hidraw nodes
+# so img339ctl can configure it without root.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="18f8", ATTRS{idProduct}=="1086", TAG+="uaccess"
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="18f8", ATTRS{idProduct}=="0fc0", TAG+="uaccess"

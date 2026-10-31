@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=IMG-339 Mouse Settings
+Name[tr]=IMG-339 Fare Ayarları
+Comment=Configure the Inca IMG-339 gaming mouse
+Comment[tr]=Inca IMG-339 oyuncu faresini ayarlayın
+Exec=img339ctl-gui
+Icon=input-mouse
+Terminal=false
+Categories=Settings;HardwareSettings;
+Keywords=mouse;dpi;gaming;inca;fare;
+StartupWMClass=img339ctl-gui

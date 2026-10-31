@@ -1,0 +1,10 @@
+[Unit]
+Description=Inca IMG-339 mouse: apply profile and run host-side button functions
+
+[Service]
+ExecStart=%h/.local/bin/img339ctl daemon
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

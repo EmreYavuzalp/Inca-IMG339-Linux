@@ -1,0 +1,278 @@
+.TH IMG339CTL 1 "October 2026" "img339ctl 0.1.7" "User Commands"
+.SH NAME
+img339ctl \- configure the Inca IMG\-339 gaming mouse
+.SH SYNOPSIS
+.B img339ctl
+.RI [ options ]
+.I command
+.RI [ arguments ]
+.SH DESCRIPTION
+.B img339ctl
+configures the Inca IMG\-339 gaming mouse (USB ID 18f8:0fc0 or 18f8:1086)
+without the vendor's Windows software: DPI levels, LED colours and effects,
+button bindings, the "fire" repeat interval and the wheel function.
+.PP
+The mouse cannot report its settings back, so
+.B img339ctl
+keeps them in a profile file and sends the whole profile every time a setting
+changes, the same way the vendor software does when you press Apply.
+Settings are stored in the mouse and survive unplugging.
+.PP
+Most functions are carried out by the mouse itself.
+Media keys, shortcuts, macros and commands are not: the mouse only reports the
+button press, and
+.B img339ctl daemon
+must be running to perform the action.
+.SH OPTIONS
+.TP
+.BI \-\-profile " FILE"
+Use
+.I FILE
+instead of the default profile (see
+.BR FILES ).
+.TP
+.BI \-\-device " PATH"
+Use the given hidraw node instead of detecting the mouse.
+.TP
+.BR \-n ", " \-\-dry\-run
+Print the reports that would be sent, one per line in hex, and do not
+touch the mouse or save the profile.
+.TP
+.BR \-h ", " \-\-help
+Show help.
+Every command also accepts
+.BR \-\-help .
+.TP
+.BR \-V ", " \-\-version
+Show the version.
+.SH COMMANDS
+Commands that change a setting save the profile and send it to the mouse.
+.TP
+.B status
+Show the detected mouse and the current profile and, while the daemon is running,
+the current DPI.
+.TP
+.B apply
+Send the profile to the mouse without changing it.
+.TP
+.B reset
+Restore the factory defaults (the same as "Reset" in the vendor software).
+.TP
+.B actions
+List everything a button can be bound to, and the macro syntax.
+.TP
+.BI "dpi " "LEVEL " \fR[\fIVALUE\fR] " \fR[\fB\-\-on\fR|\fB\-\-off\fR] [\fB\-\-active\fR]"
+Set the DPI of
+.I LEVEL
+(1\-6).
+.I VALUE
+is one of 200, 400, 600, 800, 1000, 1200, 1600, 2000, 2400, 3200, 4000 or 4800.
+.B \-\-off
+removes the level from the rotation of the DPI button,
+.B \-\-on
+puts it back, and
+.B \-\-active
+makes the mouse start in this level.
+At least one level must stay enabled.
+.TP
+.BI "color " "LEVEL COLOR"
+Set the LED colour shown in
+.I LEVEL
+(1\-6, or
+.B all
+for every level) when the LED mode is
+.B dpi
+or
+.BR static .
+.I COLOR
+is
+.I RRGGBB
+hex (with or without
+.BR # ,
+3\-digit shorthand allowed) or one of
+.BR red ", " green ", " blue ", " yellow ", " cyan ", " magenta ", " pink ,
+.BR white ", " orange ", " purple ", " black .
+The mouse has 4 bits per channel, so close colours may look the same.
+.TP
+.BI "button " "N ACTION"
+Bind button
+.I N
+(1\-7, numbered as in the vendor software) to
+.IR ACTION .
+See
+.BR ACTIONS .
+.TP
+.BI "led " MODE " \fR[\fB\-\-time\fR \fISECONDS\fR] [\fB\-\-colors\fR \fILIST\fR]"
+Set the LED mode:
+.B dpi
+(the colour of the current DPI level),
+.B cycle
+(cycle through the built\-in colours),
+.B static
+(one steady colour; set it with
+.BR "color all" ),
+or
+.BR off .
+.B \-\-time
+sets the cycle period, 1\-6 seconds.
+.B \-\-colors
+selects which of the 7 built\-in cycle colours are used, for example
+.BR \(dq1 3 5\(dq .
+.TP
+.BI "fire " MS
+Set the repeat interval of the
+.B fire
+function in milliseconds (8\-2040, rounded down to a multiple of 8).
+.TP
+.BR "wheel scroll" | volume
+Make the wheel scroll, or change the volume.
+.TP
+.BI "macro " NAME " \fR[\fISTEP\fR...]"
+Define the macro
+.I NAME
+from the given steps, or delete it when no steps are given.
+See
+.BR "MACRO SYNTAX" .
+.TP
+.B daemon
+Apply the profile, then wait for presses of buttons bound to host\-side
+actions and carry them out.
+Reconnects automatically when the mouse is unplugged and plugged back in.
+Run it from your session, for example with the supplied systemd user unit.
+.SH ACTIONS
+Handled by the mouse itself:
+.RS
+.B left middle right back forward dpi\-loop show\-desktop double\-click fire off dpi+ dpi\-
+.RE
+.PP
+.B off
+disables the button.
+.B fire
+is the vendor's rapid\-fire function; its repeat interval is set with the
+.B fire
+command.
+.PP
+Carried out by
+.BR "img339ctl daemon" :
+.TP
+Media keys
+.B browser player mail volume\-up volume\-down previous next mute play\-pause calculator stop
+.TP
+Shortcuts
+.B copy paste cut select\-all undo redo find close\-window
+.TP
+Commands
+.B file\-manager
+(runs
+.BR "xdg\-open ~" ),
+.B lock
+(runs
+.BR "loginctl lock\-session" )
+.TP
+.BI keys: CHORD
+Press a key combination, e.g.
+.BR keys:ctrl+shift+t .
+.TP
+.BI macro: NAME \fR[\fB:\fIN\fR|\fB:hold\fR]
+Play a macro once,
+.I N
+times, or repeatedly while the button is held.
+.TP
+.BI run: COMMAND
+Run a shell command with
+.BR "sh \-c" .
+.PP
+Keystrokes are sent by the mouse, so they work in every application and
+under both X11 and Wayland.
+.SH MACRO SYNTAX
+A macro is a list of steps separated by spaces:
+.TP
+.I KEY\fR or \fIKEY\fB+\fIKEY\fR...
+Tap a key or a chord (press in order, release in reverse).
+.TP
+.BI + KEY " \fRand\fB " \- KEY
+Hold or release a key.
+.TP
+.IB N ms "\fR or \fIN"
+Wait
+.I N
+milliseconds.
+Steps are otherwise 15 ms apart.
+.TP
+.BI text: STRING
+Type
+.I STRING
+(letters, digits, space and US\-layout punctuation; no spaces inside one step).
+.PP
+Key names:
+.BR a \- z ,
+.BR 0 \- 9 ,
+.BR f1 \- f12 ,
+.BR enter ", " esc ", " backspace ", " tab ", " space ", " minus ", " equal ,
+.BR leftbracket ", " rightbracket ", " backslash ", " semicolon ", " apostrophe ,
+.BR grave ", " comma ", " dot ", " slash ", " capslock ", " printscreen ,
+.BR scrolllock ", " pause ", " insert ", " home ", " pageup ", " delete ", " end ,
+.BR pagedown ", " up ", " down ", " left ", " right ", " menu ,
+the modifiers
+.BR ctrl ", " shift ", " alt ", " super ", " rctrl ", " rshift ", " altgr ", " rsuper ,
+and the mouse buttons
+.BR mouse\-left ", " mouse\-right ", " mouse\-middle .
+Keys are sent as US\-layout scan codes; the active keyboard layout decides
+which character they produce.
+.SH FILES
+.TP
+.I $XDG_CONFIG_HOME/img339ctl/profile.ini
+The profile (default
+.IR ~/.config/img339ctl/profile.ini ).
+It is a plain INI file and can be edited by hand; run
+.B img339ctl apply
+afterwards.
+.TP
+.I /etc/udev/rules.d/70\-img339\-mouse.rules
+udev rule giving the logged\-in user access to the mouse's hidraw node
+(shipped as
+.IR contrib/70\-img339\-mouse.rules ).
+.TP
+.I ~/.config/systemd/user/img339ctl.service
+Optional systemd user unit that runs the daemon (shipped as
+.IR contrib/img339ctl.service ).
+.SH EXIT STATUS
+0 on success, 1 on error (for example the mouse is missing, a value is out of
+range or the profile is invalid), 2 on invalid command line usage.
+.SH EXAMPLES
+.nf
+img339ctl dpi 1 1600            # first level: 1600 DPI
+img339ctl dpi 6 \-\-off           # skip level 6
+img339ctl color 2 ff8000        # level 2 orange
+img339ctl led dpi               # show the current level's colour
+img339ctl led off               # LEDs off
+img339ctl button 4 dpi\-         # button 4 lowers the DPI
+img339ctl macro hello text:hello enter
+img339ctl button 5 macro:hello  # needs the daemon
+img339ctl \-n reset              # show the factory settings as reports
+.fi
+.SH NOTES
+Without the udev rule only root can open the mouse.
+Install it with
+.PP
+.nf
+sudo install \-m 644 contrib/70\-img339\-mouse.rules /etc/udev/rules.d/
+sudo udevadm control \-\-reload\-rules
+.fi
+.PP
+and plug the mouse in again.
+.SH BUGS
+Settings cannot be read from the mouse.
+If they are changed by other software,
+.B img339ctl apply
+restores the profile.
+.PP
+The effect of the
+.B fire
+function has not been verified on hardware.
+.SH SEE ALSO
+.BR img339ctl\-gui ,
+the graphical version, which edits the same profile;
+.BR hidraw (4),
+.BR udev (7),
+.BR systemd.unit (5)
